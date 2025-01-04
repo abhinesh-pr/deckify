@@ -1,3 +1,8 @@
+import 'package:deckify/screens/decks/contributed_deck.dart';
+import 'package:deckify/screens/decks/online_deck.dart';
+import 'package:deckify/screens/decks/random_deck.dart';
+import 'package:deckify/screens/decks/system_deck.dart';
+import 'package:deckify/screens/decks/your_deck.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -46,7 +51,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/', page: () => SignupScreen()),
         GetPage(name: '/home', page: () => HomeScreen()),
         GetPage(name: '/shuffle', page: () => ShuffleScreen()),
-        GetPage(name: '/create_flashcard', page: () => CreateFlashcardScreen()),
+        GetPage(name: '/create_flashcard', page: () => CreateFlashcardScreen(deckId: '',)),
         GetPage(name: '/progress', page: () => ProgressScreen()),
         GetPage(name: '/achievements', page: () => AchievementsScreen()),
         GetPage(name: '/settings', page: () => SettingsScreen()),
@@ -55,6 +60,12 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/login', page: () => LoginScreen()),
         GetPage(name: '/signup', page: () => SignupScreen()),
         GetPage(name: '/forgot_password', page: () => ForgotPasswordScreen()),
+        GetPage(name: '/your_deck', page: () => YourDeck()),
+        GetPage(name: '/online_deck', page: () => OnlineDeck()),
+        GetPage(name: '/random_deck', page: () => RandomDeck()),
+        GetPage(name: '/system_deck', page: () => SystemDeck()),
+        GetPage(name: '/contributed_deck', page: () => ContributedDeck()),
+
       ],
       initialBinding: BindingsBuilder(() {
         Get.lazyPut<AuthProvider>(() => AuthProvider());  // Add AuthProvider binding

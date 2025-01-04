@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart'; // Import the flip card package
-import 'package:flutter_colorpicker/flutter_colorpicker.dart'; // Import color picker
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+
+import '../services/card_service.dart'; // Import color picker
 
 class CreateFlashcardScreen extends StatefulWidget {
+  final String deckId;
+  CreateFlashcardScreen({required this.deckId});
   @override
   _CreateFlashcardScreenState createState() => _CreateFlashcardScreenState();
 }
@@ -12,6 +18,8 @@ class _CreateFlashcardScreenState extends State<CreateFlashcardScreen> {
   final _backController = TextEditingController();
   final _categoryController = TextEditingController();  // New controller for category/topic
   final _formKey = GlobalKey<FormState>();
+
+
 
   Color _cardTextColor = Colors.black; // Default text color
   Color _cardBackgroundColor = Colors.grey[200] ?? Colors.grey; // Default background color
@@ -92,10 +100,8 @@ class _CreateFlashcardScreenState extends State<CreateFlashcardScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState?.validate() ?? false) {
-                            // Handle flashcard creation logic
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Flashcard Created')),
-                            );
+                            // Show the difficulty level dialog
+                            _showDifficultyLevelDialog(context);
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -117,7 +123,119 @@ class _CreateFlashcardScreenState extends State<CreateFlashcardScreen> {
     );
   }
 
-  // Helper method to create text fields
+  // Method to show the difficulty level selection dialog
+  void _showDifficultyLevelDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String? selectedDifficulty; // Variable to hold the selected difficulty
+
+        return AlertDialog(
+          title: Text('Select Difficulty Level'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('Easy'),
+                leading: Radio<String>(
+                  value: 'Easy',
+                  groupValue: selectedDifficulty,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedDifficulty = value;
+                    });
+                    Navigator.of(context).pop(value); // Close the dialog with the selected value
+                  },
+                ),
+              ),
+              ListTile(
+                title: Text('Medium'),
+                leading: Radio<String>(
+                  value: 'Medium',
+                  groupValue: selectedDifficulty,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedDifficulty = value;
+                    });
+                    Navigator.of(context).pop(value); // Close the dialog with the selected value
+                  },
+                ),
+              ),
+              ListTile(
+                title: Text('Hard'),
+                leading: Radio<String>(
+                  value: 'Hard',
+                  groupValue: selectedDifficulty,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedDifficulty = value;
+                    });
+                    Navigator.of(context).pop(value); // Close the dialog with the selected value
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    ).then((selectedValue) {
+      if (selectedValue != null) {
+        // After selecting the difficulty, create the card
+        _createFlashcardInFirestore(selectedValue);
+      }
+    });
+  }
+  // Update the method to create the flashcard in Firestore
+  void _createFlashcardInFirestore(String difficulty) {
+    // Get the data from the controllers and other properties
+    String category = _categoryController.text;
+    String question = _frontController.text;
+    String answer = _backController.text;
+    String textColor = _cardTextColor.value.toRadixString(16); // Convert Color to string
+    String bgColor = _cardBackgroundColor.value.toRadixString(16); // Convert Color to string
+
+    // You may want to define tags here (e.g., a list of related keywords or subjects)
+    List<String> tags = []; // For now, you can leave it empty or define tags
+
+    // Create a new instance of CardService and use it to save the card
+    CardService cardService = CardService();
+
+    // Assume 'someDeckId' is passed or stored elsewhere in your app
+    String deckId = widget.deckId;
+
+    // Call the createCard method from CardService
+    cardService.createCard(
+      category: category,
+      question: question,
+      answer: answer,
+      textColor: textColor,
+      bgColor: bgColor,
+      difficultyLevel: difficulty,
+      tags: tags,
+      deckId: deckId,
+    ).then((_) {
+      // After the card is created, show a success message
+      Get.snackbar(
+        'Success',
+        'Flashcard Created Successfully!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      // Navigate back to the home page
+      Get.offAllNamed('/home'); // Replace '/home' with your actual home route name
+    }).catchError((error) {
+      // Handle any errors
+      Get.snackbar(
+        'Error',
+        'Error creating flashcard: $error',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    });
+  }
   // Helper method to create text fields
   Widget _buildTextField(String label, String hint, TextEditingController controller) {
     return Column(

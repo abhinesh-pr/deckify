@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class RandomDeck extends StatelessWidget {
+class ContributedDeck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get the screen size to make the layout responsive
