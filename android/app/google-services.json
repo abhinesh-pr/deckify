@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1062909854339",
+    "project_id": "deckify-97784",
+    "storage_bucket": "deckify-97784.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1062909854339:android:a0899d1c2aceb01df0d1b6",
+        "android_client_info": {
+          "package_name": "com.strixz.deckify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgDOjG9z-hK7k9AN9jL8WlQlbx25RcKrw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
