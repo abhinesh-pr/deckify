@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(12.0), // Reduced padding
                               child: TextFormField(
                                 controller: _emailController,
                                 decoration: InputDecoration(
@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   hintText: 'Enter your email',
                                   prefixIcon: Icon(Icons.email, color: Colors.deepPurple),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 12.0),
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0), // Reduced height
                                 ),
                                 keyboardType: TextInputType.emailAddress,
                                 validator: _validateEmail,
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(12.0), // Reduced padding
                               child: TextFormField(
                                 controller: _passwordController,
                                 decoration: InputDecoration(
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   hintText: 'Enter your password',
                                   prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 12.0),
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0), // Reduced height
                                 ),
                                 obscureText: true,
                                 validator: _validatePassword,

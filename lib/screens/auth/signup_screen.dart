@@ -19,6 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -55,29 +56,46 @@ class _SignupScreenState extends State<SignupScreen> {
     return null;
   }
 
+  Future<String?> _validateUsername(String? value) async {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a username';
+    }
+    final query = await _firestore.collection('users').where('username', isEqualTo: value).get();
+    if (query.docs.isNotEmpty) {
+      return 'Username is already taken';
+    }
+    return null;
+  }
+
   Future<void> _signup() async {
     if (_formKey.currentState?.validate() ?? false) {
+      final usernameError = await _validateUsername(_usernameController.text);
+      if (usernameError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(usernameError)),
+        );
+        return;
+      }
+
       try {
-        // Create user in Firebase Authentication
         UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
           email: _emailController.text,
           password: _passwordController.text,
         );
 
-        // Store additional user information in Firestore
         User? user = userCredential.user;
         if (user != null) {
           await _firestore.collection('users').doc(user.uid).set({
             'uid': user.uid,
             'name': _nameController.text,
             'email': user.email,
+            'username': _usernameController.text,
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Signup Successful!')),
           );
 
-          // Navigate to the home screen
           Get.toNamed('/home');
         }
       } catch (e) {
@@ -118,30 +136,111 @@ class _SignupScreenState extends State<SignupScreen> {
                       key: _formKey,
                       child: Column(
                         children: <Widget>[
-                          TextFormField(
-                            controller: _nameController,
-                            decoration: InputDecoration(labelText: 'Full Name'),
-                            validator: (value) => value?.isEmpty ?? true ? 'Please enter your name' : null,
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: TextFormField(
+                                controller: _nameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Full Name',
+                                  hintText: 'Enter your full name',
+                                  prefixIcon: Icon(Icons.person, color: Colors.deepPurple),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                ),
+                                validator: (value) => value?.isEmpty ?? true ? 'Please enter your name' : null,
+                              ),
+                            ),
                           ),
                           SizedBox(height: 20),
-                          TextFormField(
-                            controller: _emailController,
-                            decoration: InputDecoration(labelText: 'Email'),
-                            validator: _validateEmail,
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: TextFormField(
+                                controller: _usernameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Username',
+                                  hintText: 'Choose a username',
+                                  prefixIcon: Icon(Icons.account_circle, color: Colors.deepPurple),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                ),
+                                validator: (value) => value?.isEmpty ?? true ? 'Please enter a username' : null,
+                              ),
+                            ),
                           ),
                           SizedBox(height: 20),
-                          TextFormField(
-                            controller: _passwordController,
-                            decoration: InputDecoration(labelText: 'Password'),
-                            obscureText: true,
-                            validator: _validatePassword,
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: TextFormField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  hintText: 'Enter your email',
+                                  prefixIcon: Icon(Icons.email, color: Colors.deepPurple),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                ),
+                                validator: _validateEmail,
+                              ),
+                            ),
                           ),
                           SizedBox(height: 20),
-                          TextFormField(
-                            controller: _confirmPasswordController,
-                            decoration: InputDecoration(labelText: 'Confirm Password'),
-                            obscureText: true,
-                            validator: _validateConfirmPassword,
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: TextFormField(
+                                controller: _passwordController,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  hintText: 'Enter your password',
+                                  prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                ),
+                                obscureText: true,
+                                validator: _validatePassword,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: TextFormField(
+                                controller: _confirmPasswordController,
+                                decoration: InputDecoration(
+                                  labelText: 'Confirm Password',
+                                  hintText: 'Re-enter your password',
+                                  prefixIcon: Icon(Icons.lock_outline, color: Colors.deepPurple),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                                ),
+                                obscureText: true,
+                                validator: _validateConfirmPassword,
+                              ),
+                            ),
                           ),
                           SizedBox(height: 30),
                           ElevatedButton(

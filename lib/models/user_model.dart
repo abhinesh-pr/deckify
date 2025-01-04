@@ -2,8 +2,14 @@ class UserModel {
   final String uid;
   final String name;
   final String email;
+  final String username; // Add username field
 
-  UserModel({required this.uid, required this.name, required this.email});
+  UserModel({
+    required this.uid,
+    required this.name,
+    required this.email,
+    required this.username, // Include username in constructor
+  });
 
   // Convert UserModel to a Map for Firestore
   Map<String, dynamic> toMap() {
@@ -11,6 +17,7 @@ class UserModel {
       'uid': uid,
       'name': name,
       'email': email,
+      'username': username, // Add username to the map
     };
   }
 
@@ -20,6 +27,7 @@ class UserModel {
       uid: map['uid'],
       name: map['name'],
       email: map['email'],
+      username: map['username'], // Extract username from map
     );
   }
 }

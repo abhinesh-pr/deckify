@@ -10,10 +10,10 @@ class HomeScreen extends StatelessWidget {
             // Calculate dynamic sizing based on screen width and height
             double width = constraints.maxWidth;
             double height = constraints.maxHeight;
-      
+
             // Responsiveness thresholds
             bool isSmallScreen = width < 600;
-      
+
             return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: height * 0.02),
-      
+
                     // Quick Actions Section
                     Wrap(
                       spacing: 16,
@@ -71,14 +71,14 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-      
+
                     SizedBox(height: height * 0.04),
-      
+
                     // Flashcard Decks Section
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Your Flashcard Decks",
+                        "Deck Menu",
                         style: TextStyle(
                           fontSize: isSmallScreen ? 18 : 24,
                           fontWeight: FontWeight.bold,
@@ -86,8 +86,13 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: height * 0.02),
-      
-                    _buildDeckList(context, isSmallScreen),
+
+                    // Add new sections
+                    _buildDeckCategory(context, "System Deck"),
+                    _buildDeckCategory(context, "Your Deck"),
+                    _buildDeckCategory(context, "Online Deck"),
+                    _buildDeckCategory(context, "Random Deck"),
+                    _buildDeckCategory(context, "Contributedsi Deck"),
                   ],
                 ),
               ),
@@ -136,38 +141,28 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDeckList(BuildContext context, bool isSmallScreen) {
-    // Example placeholder for user decks
-    final decks = ["Science", "History", "Mathematics", "Literature"];
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: decks.length,
-      itemBuilder: (context, index) {
-        return Card(
-          elevation: 3,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            title: Text(
-              decks[index],
-              style: TextStyle(
-                fontSize: isSmallScreen ? 16 : 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: isSmallScreen ? 16 : 20,
-            ),
-            onTap: () {
-              // Navigate to specific deck screen
-              Navigator.pushNamed(context, '/deck', arguments: decks[index]);
-            },
+  Widget _buildDeckCategory(BuildContext context, String categoryName) {
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        title: Text(
+          categoryName,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
           ),
-        );
-      },
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 20,
+        ),
+        onTap: () {
+          // Navigate to specific deck category screen
+          Navigator.pushNamed(context, '/deck_category', arguments: categoryName);
+        },
+      ),
     );
   }
 }

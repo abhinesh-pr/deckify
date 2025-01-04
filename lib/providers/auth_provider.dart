@@ -38,19 +38,37 @@ class AuthProvider extends GetxController {
   }
 
   // Sign up user
-  Future<void> signup(String email, String password, String name) async {
+  Future<void> signup(String email, String password, String name, String username) async {
     try {
+      // Check if username is unique
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        Get.snackbar(
+          "Error",
+          "Username is already taken",
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       User? firebaseUser = await _authService.signupUser(
         email: email,
         password: password,
         name: name,
+        username: username, // Include username in signup
       );
+
       if (firebaseUser != null) {
         // Store user data in Firestore
         UserModel newUser = UserModel(
           uid: firebaseUser.uid,
           name: name,
           email: email,
+          username: username, // Save username
         );
         await FirebaseFirestore.instance
             .collection('users')
@@ -83,16 +101,15 @@ class AuthProvider extends GetxController {
         if (doc.exists) {
           user.value = UserModel.fromMap(doc.data() as Map<String, dynamic>);
           isAuthenticated.value = true;
-          return true;  // Login successful
+          return true; // Login successful
         }
       }
       return false; // Login failed
     } catch (e) {
       print("Error during login: $e");
-      return false;  // Return false if an error occurs
+      return false; // Return false if an error occurs
     }
   }
-
 
   // Logout user
   Future<void> logout() async {
