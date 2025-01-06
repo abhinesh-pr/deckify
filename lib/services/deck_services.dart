@@ -1,71 +1,99 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-
+import 'package:uuid/uuid.dart';  // Add this package for UUID generation
 import '../models/deck_model.dart';
 
 
 class DeckService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Collection reference
-  CollectionReference get _deckCollection => _firestore.collection('decks');
+  // Collection reference for 'dec' collection
+  CollectionReference get _deckCollection => _db.collection('decks');
 
-  // Create a new deck
-  Future<void> createDeck(Deck deck) async {
+  // Method to add a deck with a generated unique deckId and description "created by {username}"
+  Future<void> addDeck(String username, DeckModel deck) async {
     try {
-      await _deckCollection.add(deck.toMap());
-      print("Deck created successfully");
+      // The deck already has a generated deckId when passed, so no need to generate a new one.
+      String deckId = deck.deckId; // This comes from the caller (such as _createNewDeck).
+
+      // Create the description as "created by {username}"
+      String description = "created by $username";
+
+      // Create a new deck with the passed deckId and description
+      DeckModel deckWithId = DeckModel(
+        deckId: deckId, // Use the passed deckId
+        deckName: deck.deckName,
+        description: description,
+        userId: deck.userId,
+        createdAt: Timestamp.now(),
+      );
+
+      // Add the deck document to Firestore with the passed deckId
+      await _deckCollection.doc(deckId).set(deckWithId.toMap());
+      print("Deck $deckId has been added successfully.");
     } catch (e) {
-      print("Error creating deck: $e");
+      print("Error adding deck: $e");
       throw e;
     }
   }
 
-  // Get a deck by deckId
-  Future<Deck?> getDeckById(String deckId) async {
+
+  // Method to get a deck by its deckId
+  Future<DeckModel?> getDeckById(String deckId) async {
     try {
-      DocumentSnapshot doc = await _deckCollection.doc(deckId).get();
-      if (doc.exists) {
-        return Deck.fromFirestore(doc);
+      DocumentSnapshot docSnapshot = await _deckCollection.doc(deckId).get();
+
+      // If the document exists, return the DeckModel
+      if (docSnapshot.exists) {
+        return DeckModel.fromFirestore(docSnapshot);
       } else {
-        print("Deck not found");
+        print("Deck with ID $deckId not found.");
         return null;
       }
     } catch (e) {
-      print("Error fetching deck: $e");
+      print("Error getting deck: $e");
       throw e;
     }
   }
 
-  // Get all decks created by the user
-  Future<List<Deck>> getUserDecks(String uid) async {
+  // Method to delete a deck by its deckId
+  Future<void> deleteDeck(String deckId) async {
     try {
-      QuerySnapshot snapshot = await _deckCollection.where('uid', isEqualTo: uid).get();
-      return snapshot.docs.map((doc) => Deck.fromFirestore(doc)).toList();
+      await _deckCollection.doc(deckId).delete();
+      print("Deck $deckId has been deleted successfully.");
+    } catch (e) {
+      print("Error deleting deck: $e");
+      throw e;
+    }
+  }
+
+  Future<List<DeckModel>> getUserDecks(String userId) async {
+    try {
+      // Query Firestore for decks where the userId matches
+      QuerySnapshot querySnapshot = await _deckCollection
+          .where('userId', isEqualTo: userId)  // Filter by userId
+          .get();
+
+      // Convert the query snapshot to a list of DeckModel
+      List<DeckModel> userDecks = querySnapshot.docs
+          .map((doc) => DeckModel.fromFirestore(doc))
+          .toList();
+      return userDecks;
     } catch (e) {
       print("Error fetching user decks: $e");
       throw e;
     }
   }
 
-  // Update a deck's name
-  Future<void> updateDeckName(String deckId, String newDeckName) async {
+  // Method to get all decks (Optional, can be paginated)
+  Future<List<DeckModel>> getAllDecks() async {
     try {
-      await _deckCollection.doc(deckId).update({'deckName': newDeckName});
-      print("Deck name updated successfully");
+      QuerySnapshot querySnapshot = await _deckCollection.get();
+      List<DeckModel> decks = querySnapshot.docs
+          .map((doc) => DeckModel.fromFirestore(doc))
+          .toList();
+      return decks;
     } catch (e) {
-      print("Error updating deck: $e");
-      throw e;
-    }
-  }
-
-  // Delete a deck
-  Future<void> deleteDeck(String deckId) async {
-    try {
-      await _deckCollection.doc(deckId).delete();
-      print("Deck deleted successfully");
-    } catch (e) {
-      print("Error deleting deck: $e");
+      print("Error fetching decks: $e");
       throw e;
     }
   }

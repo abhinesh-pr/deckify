@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 
+import '../models/card_model.dart';
+import '../models/deck_model.dart';
+import '../services/card_service.dart';
+import '../services/deck_services.dart';
 import 'create_flashcard_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -213,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 String deckName = deckNameController.text.trim();
                 if (deckName.isNotEmpty) {
-                  _createNewDeck(deckName, context);
+                  _createNewDeck(deckName, context, category: '', question: '', answer: '', textColor: Color(21312), bgColor: Color(21312) , difficultyLevel: '', tags: []);
                   Navigator.pop(context);
                 }
               },
@@ -225,18 +229,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _createNewDeck(String deckName, BuildContext context) async {
-    String deckId = Uuid().v4();
+  Future<void> _createNewDeck(
+      String deckName, BuildContext context, {
+        required String category,
+        required String question,
+        required String answer,
+        required Color textColor,
+        required Color bgColor,
+        required String difficultyLevel,
+        required List<String> tags,
+      }) async {
+    try {
+      // Generate a unique deckId
+      String deckId = Uuid().v4();
 
-    await _firestore.collection('decks').add({
-      'deckName': deckName,
-      'deckId': deckId,
-      'userId': FirebaseAuth.instance.currentUser?.uid,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+      // Get the current user's UID and username
+      String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
 
-    Get.to(
-      CreateFlashcardScreen(deckId: deckId),
-    );
+      String username = userSnapshot.exists ? userSnapshot['username'] : 'Unknown User';
+
+      // Create a new DeckModel instance
+      DeckModel newDeck = DeckModel(
+        deckId: deckId,
+        deckName: deckName,
+        description: 'Created by $username', // Adding the 'created by' field
+        userId: userId,
+        createdAt: Timestamp.now(),
+      );
+
+      // Use DeckService to add the deck
+      await DeckService().addDeck(username, newDeck);
+
+      // Define newCard with dynamic inputs from user
+      CardModel newCard = CardModel(
+        category: category,
+        question: question,
+        answer: answer,
+        textColor: textColor,
+        bgColor: bgColor,
+        difficultyLevel: difficultyLevel,
+        tags: tags,
+        uniqueId: Uuid().v4(), // Generate a unique ID for the card
+        deckId: deckId, // The deck this card belongs to
+        userId: userId, // The user who created the card
+      );
+
+      // Add the card to the deck using CardServices
+      await CardServices().addCard(deckId, newCard);
+
+      // Navigate to the CreateFlashcardScreen with the new deck ID
+      Get.to(
+        CreateFlashcardScreen(deckId: deckId),
+      );
+    } catch (e) {
+      print("Error creating new deck: $e");
+      // Handle error if needed
+    }
   }
+
+
+
 }
