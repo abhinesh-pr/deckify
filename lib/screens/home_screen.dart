@@ -3,10 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
-
-import '../models/card_model.dart';
 import '../models/deck_model.dart';
-import '../services/card_service.dart';
 import '../services/deck_services.dart';
 import 'create_flashcard_screen.dart';
 
@@ -217,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 String deckName = deckNameController.text.trim();
                 if (deckName.isNotEmpty) {
-                  _createNewDeck(deckName, context, category: '', question: '', answer: '', textColor: Color(21312), bgColor: Color(21312) , difficultyLevel: '', tags: []);
+                  _createNewDeck(deckName);
                   Navigator.pop(context);
                 }
               },
@@ -229,16 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _createNewDeck(
-      String deckName, BuildContext context, {
-        required String category,
-        required String question,
-        required String answer,
-        required Color textColor,
-        required Color bgColor,
-        required String difficultyLevel,
-        required List<String> tags,
-      }) async {
+  Future<void> _createNewDeck(String deckName) async {
     try {
       // Generate a unique deckId
       String deckId = Uuid().v4();
@@ -263,23 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Use DeckService to add the deck
       await DeckService().addDeck(username, newDeck);
-
-      // Define newCard with dynamic inputs from user
-      CardModel newCard = CardModel(
-        category: category,
-        question: question,
-        answer: answer,
-        textColor: textColor,
-        bgColor: bgColor,
-        difficultyLevel: difficultyLevel,
-        tags: tags,
-        uniqueId: Uuid().v4(), // Generate a unique ID for the card
-        deckId: deckId, // The deck this card belongs to
-        userId: userId, // The user who created the card
-      );
-
-      // Add the card to the deck using CardServices
-      await CardServices().addCard(deckId, newCard);
 
       // Navigate to the CreateFlashcardScreen with the new deck ID
       Get.to(
