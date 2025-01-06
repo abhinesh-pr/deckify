@@ -1,60 +1,41 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'card_model.dart';
-
-class Deck {
+class DeckModel {
   final String deckId;
   final String deckName;
-  final String uid;
-  final String username;
+  final String description;
+  final String userId;
+  final Timestamp createdAt;
 
-  Deck({
+  // Constructor
+  DeckModel({
     required this.deckId,
     required this.deckName,
-    required this.uid,
-    required this.username,
+    required this.description,
+    required this.userId,
+    required this.createdAt,
   });
 
-  // Convert Firestore document to Deck object
-  factory Deck.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
-    return Deck(
+  // From Firestore document to DeckModel
+  factory DeckModel.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map;
+    return DeckModel(
       deckId: data['deckId'] ?? '',
       deckName: data['deckName'] ?? '',
-      uid: data['uid'] ?? '',
-      username: data['username'] ?? '',
+      description: data['description'] ?? '',
+      userId: data['userId'] ?? '',
+      createdAt: data['createdAt'] ?? Timestamp.now(),
     );
   }
 
-  // Convert Deck object to Firestore document format
+  // Convert DeckModel to Firestore document data
   Map<String, dynamic> toMap() {
     return {
       'deckId': deckId,
       'deckName': deckName,
-      'uid': uid,
-      'username': username,
+      'description': description,
+      'userId': userId,
+      'createdAt': createdAt,
     };
-  }
-
-  // When creating a new card, pass the deckId to CardModel's createCardForDeck method
-  Future<void> createCard(
-      {required String category,
-        required String question,
-        required String answer,
-        required String textColor,
-        required String bgColor,
-        required String difficultyLevel,
-        required List<String> tags}) async {
-    // Pass deckId from this Deck to the CardModel
-    await CardModel.createCardForDeck(
-      category: category,
-      question: question,
-      answer: answer,
-      textColor: textColor,
-      bgColor: bgColor,
-      difficultyLevel: difficultyLevel,
-      tags: tags,
-      deckId: this.deckId,  // Pass the current deckId here
-    );
   }
 }

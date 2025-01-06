@@ -1,9 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_flip_card/flutter_flip_card.dart'; // Import the flip card package
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:uuid/uuid.dart';
 
+import '../models/card_model.dart';
 import '../services/card_service.dart'; // Import color picker
 
 class CreateFlashcardScreen extends StatefulWidget {
@@ -187,55 +190,77 @@ class _CreateFlashcardScreenState extends State<CreateFlashcardScreen> {
   }
   // Update the method to create the flashcard in Firestore
   void _createFlashcardInFirestore(String difficulty) {
-    // Get the data from the controllers and other properties
-    String category = _categoryController.text;
-    String question = _frontController.text;
-    String answer = _backController.text;
-    String textColor = _cardTextColor.value.toRadixString(16); // Convert Color to string
-    String bgColor = _cardBackgroundColor.value.toRadixString(16); // Convert Color to string
+    try {
+      // Get the data from the controllers and other properties
+      String category = _categoryController.text;
+      String question = _frontController.text;
+      String answer = _backController.text;
+      String textColor = _cardTextColor.value.toRadixString(16); // Convert Color to string (hexadecimal)
+      String bgColor = _cardBackgroundColor.value.toRadixString(16); // Convert Color to string (hexadecimal)
 
-    // You may want to define tags here (e.g., a list of related keywords or subjects)
-    List<String> tags = []; // For now, you can leave it empty or define tags
+      // Define tags here, for now, you can leave it empty or define tags dynamically
+      // List<String> tags = _tagsController.text.isNotEmpty
+      //     ? _tagsController.text.split(',').map((tag) => tag.trim()).toList()
+      //     : [];
 
-    // Create a new instance of CardService and use it to save the card
-    CardService cardService = CardService();
+      // Create a new instance of CardServices and use it to save the card
+      CardServices cardServices = CardServices();
 
-    // Assume 'someDeckId' is passed or stored elsewhere in your app
-    String deckId = widget.deckId;
+      // Assume 'deckId' is passed or stored elsewhere in your app
+      String deckId = widget.deckId;
 
-    // Call the createCard method from CardService
-    cardService.createCard(
-      category: category,
-      question: question,
-      answer: answer,
-      textColor: textColor,
-      bgColor: bgColor,
-      difficultyLevel: difficulty,
-      tags: tags,
-      deckId: deckId,
-    ).then((_) {
-      // After the card is created, show a success message
-      Get.snackbar(
-        'Success',
-        'Flashcard Created Successfully!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+      // Generate a unique ID for the card (you could use Uuid for generating a unique ID)
+      String uniqueId = Uuid().v4();
+
+      // Create a new instance of CardModel
+      CardModel newCard = CardModel(
+        category: category,
+        question: question,
+        answer: answer,
+        textColor: Color(int.parse(textColor, radix: 16)), // Convert hex string back to Color
+        bgColor: Color(int.parse(bgColor, radix: 16)), // Convert hex string back to Color
+        difficultyLevel: difficulty,
+        tags: [],
+        uniqueId: uniqueId,
+        deckId: deckId,
+        userId: FirebaseAuth.instance.currentUser?.uid ?? '', // You can update this with the actual user ID if needed
       );
 
-      // Navigate back to the home page
-      Get.offAllNamed('/home'); // Replace '/home' with your actual home route name
-    }).catchError((error) {
-      // Handle any errors
+      // Call the addCard method from CardServices to add the card to Firestore
+      cardServices.addCard(deckId, newCard).then((_) {
+        // After the card is created, show a success message
+        Get.snackbar(
+          'Success',
+          'Flashcard Created Successfully!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+
+        // Navigate back to the home page (or another appropriate screen)
+        Get.offAllNamed('/home'); // Replace '/home' with your actual home route name
+      }).catchError((error) {
+        // Handle any errors
+        Get.snackbar(
+          'Error',
+          'Error creating flashcard: $error',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      });
+    } catch (error) {
+      // Catch any unexpected errors
       Get.snackbar(
         'Error',
-        'Error creating flashcard: $error',
+        'Unexpected error: $error',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-    });
+    }
   }
+
   // Helper method to create text fields
   Widget _buildTextField(String label, String hint, TextEditingController controller) {
     return Column(
